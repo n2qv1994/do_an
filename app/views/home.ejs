@@ -1,0 +1,114 @@
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>PeerCDN Video Demo</title>
+    <script src="http://localhost:3005/socket.io/socket.io.js"></script>
+    <script src="bower_components/jquery/dist/jquery.js"></script>
+    <script src="bower_components/peerjs/peer.js"></script>
+
+    <script src="peer-cdn/utils.js"></script>
+    <script src="peer-cdn/peer-container.js"></script>
+    <script src="peer-cdn/peer-manager.js"></script>
+    <script src="peer-cdn/peer-request.js"></script>
+    <script src="peer-cdn/peer-resource.js"></script>
+    <script src="peer-cdn/peer-stats.js"></script>
+    <script src="peer-cdn/peer-cache.js"></script>
+    <script src="peer-cdn/peer-cache-size-limit.js"></script>
+    <script src="peer-cdn/peer-history.js"></script>
+    <script src="peer-cdn/peercdn.js"></script>
+    
+    <!-- Media type-->
+    <script src="peer-media/peer-xhr.js"></script>
+
+    <!-- Video JS Player-->
+    <link href="https://vjs.zencdn.net/4.12/video-js.css" rel="stylesheet">
+    <script src="external-lib/video.dev.js"></script>
+    <script src="external-lib/videojs-media-sources.js"></script>
+    <script src="external-lib/videojs.hls.js"></script>
+    <script src="peer-media/peer-videojs-hls.js"></script>
+    <style type="text/css">
+        #serverProgress {
+          width: 100%;
+          background-color: #ddd;
+        }
+
+        #serverBar {
+          width: 0%;
+          height: 30px;
+          background-color: #4CAF50;
+          text-align: center;
+          line-height: 30px;
+          color: white;
+        }
+
+        #peerProgress {
+          width: 100%;
+          background-color: #ddd;
+        }
+
+        #peerBar {
+          width: 0%;
+          height: 30px;
+          background-color: #188fca;
+          text-align: center;
+          line-height: 30px;
+          color: white;
+        }
+    </style>
+</head>
+<body>
+<p><%= data.user.username %></p>
+<br>
+    <video id=example-video width=600 height=300 class="video-js vjs-default-skin" controls>
+        <source
+                src="https://cdnapisec.kaltura.com/p/1375472/sp/137547200/playManifest/entryId/0_ncvvnzfe/flavorIds/0_obbhtwhw,0_ikr2ob7t/format/applehttp/protocol/https/a.m3u8"
+                type="application/x-mpegURL">
+    </video>
+    <div id="ip_address"></div>
+    <div id="info_1"></div>
+    <div id="mac_address"></div>
+    <div id="info_2"></div>
+<p>Data from server</p>
+<div id="serverProgress">
+  <div id="serverBar">0%</div>
+</div>
+<p>Data from peer</p>
+<div id="peerProgress">
+  <div id="peerBar">0%</div>
+</div>
+Peer Id: 
+<ol id="list_peer_id" type="1">
+</ol>
+    <script>
+        var player = videojs('example-video');
+    </script>
+</body>
+</html>
+
+<script type="text/javascript">
+window.peercdn = new PeerCDN({size_limit:50*1024*1024});
+window.peercdn.connect("localhost:3005");
+var info = {};
+var username = "<%- data.user.username %>";
+$.get("http://ipinfo.io", function(response) {
+    $("#ip_address").text(response.ip);
+    info.username = username;
+    info.hostname = response.hostname; 
+    info.city = response.city;
+    info.region = response.region;
+    info.country = response.country;
+    info.location = response.loc;
+    info.origin = response.org;
+    $("#info_1").text(info);
+    window.peercdn.emit("info", info);
+
+}, "jsonp");
+
+// $(document).ready(function () {
+//     $.getJSON("http://jsonip.com/?callback=?", function (data) {
+//         $("#mac_address").text(data.ip);
+//         $("#info_2").text(data);
+//     });
+// });
+</script>
