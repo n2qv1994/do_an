@@ -65,10 +65,7 @@
                 src="https://cdnapisec.kaltura.com/p/1375472/sp/137547200/playManifest/entryId/0_ncvvnzfe/flavorIds/0_obbhtwhw,0_ikr2ob7t/format/applehttp/protocol/https/a.m3u8"
                 type="application/x-mpegURL">
     </video>
-    <div id="ip_address"></div>
-    <div id="info_1"></div>
-    <div id="mac_address"></div>
-    <div id="info_2"></div>
+
 <p>Data from server</p>
 <div id="serverProgress">
   <div id="serverBar">0%</div>
@@ -77,12 +74,24 @@
 <div id="peerProgress">
   <div id="peerBar">0%</div>
 </div>
-Peer Id: 
-<ol id="list_peer_id" type="1">
-</ol>
     <script>
         var player = videojs('example-video');
     </script>
+
+<div id="chartContainer" style="height: 300px; width:80%;">
+</div>
+
+<div id="ip_address"></div>
+<div id="info_1"></div>
+<div id="mac_address"></div>
+<div id="info_2"></div>
+
+Peer Id: 
+<ol id="list_peer_id" type="1">
+</ol>
+
+
+
 </body>
 </html>
 
@@ -90,17 +99,19 @@ Peer Id:
 window.peercdn = new PeerCDN({size_limit:50*1024*1024});
 window.peercdn.connect("localhost:3005");
 var info = {};
-var username = "<%- data.user.username %>";
+window.username = "<%- data.user.username %>";
 $.get("http://ipinfo.io", function(response) {
     $("#ip_address").text(response.ip);
-    info.username = username;
+    info.username = window.username;
     info.hostname = response.hostname; 
     info.city = response.city;
     info.region = response.region;
     info.country = response.country;
-    info.location = response.loc;
     info.origin = response.org;
-    $("#info_1").text(info);
+    info.longitude = parseFloat(response.loc.slice(0,6));
+    info.latitude = parseFloat(response.loc.slice(8,15));
+
+    $("#info_1").text(info.longitude);
     window.peercdn.emit("info", info);
 
 }, "jsonp");
@@ -112,3 +123,127 @@ $.get("http://ipinfo.io", function(response) {
 //     });
 // });
 </script>
+<script type="text/javascript" src="canvasjs.min.js"></script>
+<script type="text/javascript">
+  window.data = {
+    speed : 0,
+    type  : "" 
+  };
+  window.onload = function () {
+
+    var dps_http = []; // dataPoints
+    var dps_peer = [];
+
+    var chart = new CanvasJS.Chart("chartContainer",{
+      title :{
+        text: "Dowload data"
+      },  
+     legend: {
+          verticalAlign: "bottom",
+          horizontalAlign: "center"
+      },
+      animationEnabled: true, 
+      axisX:{      
+        title: "Time"
+      },
+      axisY: {
+        title: "Speed (Kb/s)"
+      },   
+      data: [{
+        name: "Dowload http",
+        legendMarkerType: "square",
+        showInLegend: true, 
+        type: "area",
+        color: "rgba(40,175,101,0.6)",
+        dataPoints: dps_http 
+      },
+      {
+        name: "Dowload peer",
+        legendMarkerType: "square",
+        showInLegend: true, 
+        type: "area",
+        color: "rgba(0,75,141,0.7)",
+        dataPoints: dps_peer 
+      }]
+    });
+
+    var xVal = 0;
+    var updateInterval = 500;
+    var dataLength = 30; // number of dataPoints  visible at any point
+
+    var updateChart = function (count) {
+      count = count || 1;
+      // count is number of times loop runs to generate random dataPoints.
+      
+      for (var j = 0; j < count; j++) { 
+        if(window.data.type == "http") {
+          dps_http.push({
+            x: xVal,
+            y: window.data.speed
+          });
+          dps_peer.push({
+            x: xVal,
+            y: 0
+          });
+          window.data.type = "";
+          xVal++;
+        }
+        else if(window.data.type == "peer") {
+          dps_http.push({
+            x: xVal,
+            y: 0
+          });
+          dps_peer.push({
+            x: xVal,
+            y: window.data.speed
+          });
+          window.data.type = "";
+          xVal++;
+        }
+        else {
+          dps_http.push({
+            x: xVal,
+            y: 0
+          });
+          dps_peer.push({
+            x: xVal,
+            y: 0
+          });
+          window.data.type = "";
+          xVal++;
+        }
+      };
+      if (dps_http.length > dataLength)
+      {
+        dps_http.shift();  
+        dps_peer.shift();      
+      }
+      
+      chart.render();   
+
+    };
+
+    // generates first set of dataPoints
+    updateChart(dataLength); 
+
+    // update chart after specified time. 
+    setInterval(function(){updateChart()}, updateInterval); 
+
+  }
+  var time = formatDate(new Date());
+
+  function formatDate(date) {
+    var time = "";
+    var day = date.getDate();
+    var month = date.getMonth();
+    var year = date.getFullYear();
+    var hour = date.getHours();
+    var minute = date.getMinutes();
+    var second = date.getSeconds();
+
+    time = hour + ":" + minute + ":" + second;
+    return time;
+  };
+
+  </script>
+

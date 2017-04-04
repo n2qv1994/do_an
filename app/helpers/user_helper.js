@@ -1,5 +1,5 @@
 /**
- * Author: Nguyen Hoang Anh
+ * Author: Nguyen Nho Quoc Viet
  * Helper: user_helper
  */
 
@@ -11,7 +11,7 @@ var User_Helper = {
 
 };
 
-User_Helper.find_by_name = function(username) {
+User_Helper.find_by_username = function(username) {
   var message = {};
   var deferred = Q.defer();
 
@@ -23,7 +23,6 @@ User_Helper.find_by_name = function(username) {
     return deferred.resolve(message);
   })
   .catch(function(error) {
-    console.log(error);
     message.error = error.message;
     return deferred.reject(message);
   });
@@ -31,61 +30,38 @@ User_Helper.find_by_name = function(username) {
   return deferred.promise;
 };
 
-User_Helper.update_point = function(username) {
-  var message = {};
-  var deferred = Q.defer();
+User_Helper.update_score = function(user) {
+  // user.point = user.point + 1;
+  user.score++;
 
-  models.User.find({
-    where: { username: username }
+  user.update({
+    score: user.score
   })
-  .then(function(user) {
-    if(user) {
-      // user.point = user.point + 1;
-      user.point++;
-
-      user.update({
-        point: user.point
-      }).then(function() {
-        console.log("update point success");
-      });
-    }
-    message.data = "update point success";
-    return deferred.resolve(message);
+  .then(function(user_update) {
+    console.log("update score success");
   })
   .catch(function(error) {
+    console.log("update score false");
     console.log(error);
-    message.error = error.message;
-    return deferred.reject(message);
   });
-
-  return deferred.promise;
 };
 
-User_Helper.update_status = function(username, status) {
-  var message = {};
-  var deferred = Q.defer();
-
-  models.User.find({
-    where: { username: username }
-  })
-  .then(function(user) {
-    if(user) {
-      user.update({
-        status: status
-      }).then(function() {
-        console.log("update status success");
-      });
-    }
-    message.data = "update status success";
-    return deferred.resolve(message);
-  })
-  .catch(function(error) {
-    console.log(error);
-    message.error = error.message;
-    return deferred.reject(message);
-  });
-
-  return deferred.promise;
+User_Helper.update_status = function(user, status) {
+  if(user) {
+    user.update({
+      status: status
+    })
+    .then(function(user_update) {
+      console.log("*** update user'status success ***");
+    })
+    .catch(function(err) {
+      console.log("*** update user'status false ***");
+      console.log(err);
+    });
+  }
+  else {
+    console.log("*** user = null ***")
+  }
 };
 
 User_Helper.get_best_peers = function() {
@@ -101,8 +77,8 @@ User_Helper.get_best_peers = function() {
       for(var i = 0; i < result.count; i ++) {
         user.push(result.rows[i].username);
       }
-      console.log("*****************Helper*********************");
-      console.log(user);
+      // console.log("*****************Helper*********************");
+      // console.log(user);
       message.data = user;
     }
     else {

@@ -7,12 +7,23 @@ var app = express();
 var server = require('http').Server(app);
 var io = require('socket.io')(server);
 var PeerServer = require('peer').PeerServer;
+var Utils           = require("./utils/utils");
 
 var RoomManager = require('./peer-cdn/room-manager.js');
 var api         = require('./api/api.js');
 var login       = require("./routes/login.js");
 var home       = require("./routes/home.js");
-var user_services = require("./services/user_services.js");
+
+var location_helper = require("./helpers/location_helper.js");
+var user_helper = require("./helpers/user_helper.js");
+
+var user_service = require("./services/user_service.js");
+var location_service = require("./services/location_service.js");
+var zone_service = require("./services/zone_service.js");
+var user_zone_service = require("./services/user_zone_service.js");
+var friend_service = require("./services/friend_service.js");
+
+
 var list_user = {};
 
 var peer_server = null;
@@ -41,6 +52,7 @@ app.use(session({
 app.use(methodOverride('_method'));
 
 app.use(express.static(path.join(__dirname, '/public')));
+app.use(express.static(path.join(__dirname, '/node_modules')));
 app.use(express.static(path.join(__dirname, '/routes')));
 app.use(express.static(path.join(__dirname, '/views')));
 app.use('/api', api);
@@ -58,6 +70,7 @@ io.on('connection', function(socket){
   console.log("On Connection:", socket.id, socket.handshake.query);
   var room_id = socket.handshake.query.room_id;
   var key = socket.handshake.query.key;
+  zone_service.add_zone(room_id);
   // if(room_id != undefined && room_id.length > 0){
   //     getRoom(room_id).addPeer(socket.id, socket);
   // } 
@@ -65,40 +78,54 @@ io.on('connection', function(socket){
   //     socket.close();
   // }
   socket.on("disconnect", function() {
-    user_services.update_status(socket.username,"offline");
-    delete list_user[socket.username];
-
-    // for(var room_id in room_mapper) {
-    //   room_mapper[room_id].update_list_user(list_user);
-    // }
+    user_helper.update_status(socket.user,"offline");
+    friend_service.update_status(socket.user,"offline");
+    friend_service.upgrade_to_friend(socket.user);
+    delete list_user[socket.id];
   }); 
+
   socket.on("info", function(info) {
     socket.username = info.username;
-    list_user[info.username] = {
-      peer_id : socket.id,
-      username: info.username,
-      hostname : info.hostname,
-      city : info.city,
-      region : info.region,
-      country : info.country,
-      location : info.location,
-      origin : info.origin,
-    }
-    if(room_id != undefined && room_id.length > 0){
-      getRoom(room_id).addPeer(socket.id, info.username, info.origin, socket);
-    } 
-    else {
-        socket.close();
-    }
-    user_services.update_status(info.username,"online");
-    // for(var room_id in room_mapper) {
-    //   room_mapper[room_id].update_list_user(list_user);
-    // }
+    user_helper.find_by_username(info.username)
+    .then(function(message) {
+      var user = message.data;
+      socket.user = user;
+      list_user[socket.id] = {
+        username: info.username,
+        user_id :user.id,
+        socket_id: socket.id
+      };
+
+      if(room_id != undefined && room_id.length > 0){
+        getRoom(room_id).addPeer(socket.id, user.id, info.origin, info.longitude, info.latitude, socket);
+      } 
+      else {
+          socket.close();
+      }
+
+      user_helper.update_status(user,"online");
+      friend_service.update_status(user,"online");
+      location_service.add_location(user, info);
+      user_zone_service.add_relation(user, room_id);
+
+    })
+    .catch(function(message_error) {
+      console.log("*** Find username false ***");
+      console.log(message_error);
+    });
   });
-  socket.on("increase_point", function(peer_id) {
-    for(var username in list_user) {
-      if(list_user[username].peer_id == peer_id) {
-        user_services.update_point(list_user[username].username);
+
+  socket.on("increase_score", function(data) {
+    for(var socket_id in list_user) {
+      if(list_user[socket_id].socket_id == data.sender_id) {
+        var sender_id = list_user[socket_id].user_id;
+        user_service.update_score(list_user[socket_id].username);
+        for(var socket_id in list_user) {
+          if(list_user[socket_id].username == data.receiver) {
+            friend_service.update_score(list_user[socket_id].user_id, sender_id);
+            return;
+          }
+        }   
         return;
       }
     }

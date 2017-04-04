@@ -1,4 +1,4 @@
-var user_services = require("../services/user_services");
+var user_services = require("../services/user_service.js");
 var jwt           = require('jsonwebtoken');
 var config        = require('../../config/config.js');
 

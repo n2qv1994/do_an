@@ -2,11 +2,13 @@
  * Created by spider on 8/20/15.
  */
 
-function PeerContainer(peer_id, username, origin, socket){
+function PeerContainer(peer_id, user_id, origin, longitude, latitude, socket){
     this.peer_id = peer_id;
     this.socket = socket;
     this.origin = origin;
-    this.username = username;
+    this.longitude = longitude;
+    this.latitude = latitude;
+    this.user_id = user_id;
 }
 
 PeerContainer.prototype.emit = function(type, params, callback){
@@ -22,7 +24,7 @@ PeerContainer.prototype.on = function(type, callback){
 }
 
 module.exports = {
-    create: function (peer_id, username, origin, socket) {
-        return new PeerContainer(peer_id, username, origin, socket);
+    create: function (peer_id, user_id, origin,  longitude, latitude, socket) {
+        return new PeerContainer(peer_id, user_id, origin,  longitude, latitude, socket);
     }
 }

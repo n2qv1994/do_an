@@ -52,9 +52,15 @@ PeerCDN.prototype.request = function(resource_id, callback){
         var speed = data.byteLength / (end_time - start_time);
         console.log("Download------ " + resource_id + " ---size:" + (data.byteLength / 1024) + "---kB speed:" + speed + "---kB/s by " + type);
         self.peer_stats.add(type, data.byteLength,end_time - start_time, 10, peer_id, self.socket);
+        window.data.speed = speed;
+        window.data.type = type;
         if(type == "peer") {
             $("#list_peer_id").append('<li>'+peer_id+'</li>');
-            self.emit("increase_point", peer_id);
+            var data = {
+                receiver: window.username,
+                sender_id: peer_id
+            };
+            self.emit("increase_score", data);
         }
         if(callback) callback(data);
     });

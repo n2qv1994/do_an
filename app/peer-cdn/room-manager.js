@@ -3,7 +3,8 @@
  */
 var PeerContainer = require('./peer-container.js');
 var nodeproxy = require('nodeproxy');
-var user_service = require("../services/user_services.js");
+var user_service = require("../services/user_service.js");
+var friend_service = require("../services/friend_service.js");
 var EventEmitter2 = require('eventemitter2').EventEmitter2;
 var event = new EventEmitter2();
 
@@ -16,43 +17,111 @@ function RoomManager(room_id, _config){
 }
 RoomManager.prototype.bestPeersForPeer = function(peer_id, callback){
     var self = this;
-    user_service.get_best_peers(function(usernames) {
-        var peer_mapper = self.peer_mapper;
-        var list_peer_id_return = [];
-        // console.log("****** perr_mapper **********")
-        // console.log(peer_mapper);
-        // console.log("***********best user ************");
-        // console.log(usernames);
-        // var all = Object.keys(peer_mapper);
+    var peer_mapper = self.peer_mapper;
+    var user_id = self.peer_mapper[peer_id].user_id;
+    var number_friend = 5;
+    var length_of_peers = 0;
+    friend_service.get_friend(user_id, number_friend, function(err, friends_id) {
+        if(!err) {
+            var peer_id_return = [];
+            if(friends_id.length == number_friend) {
+                console.log("*** friend = "+number_friend+" ***");
+                for(var _peer_id in peer_mapper) {
+                    for(var i = 0; i < friends_id.length; i++) {
+                        if(peer_mapper[peer_id].user_id == friends_id[i]) {
+                            peer_id_return.push(peer_mapper[_peer_id].peer_id);
+                            return;
+                        }
+                    }
+                }
+                console.log(peer_id_return); 
+                return callback(peer_id_return);   
+            }
+            else if(friends_id.length < number_friend) {
+                console.log("*** friend = "+ friends_id.length +" < "+number_friend+" ***");
+                var same_origin = [];
+                var small_distance = [];
+                for(var _peer_id in peer_mapper) {
+                    for(var i = 0; i < friends_id.length; i++) {
+                        if(peer_mapper[_peer_id].user_id == friends_id[i]) {
+                            peer_id_return.push(peer_mapper[_peer_id].peer_id);
+                            delete peer_mapper[_peer_id];
+                        }
+                    }
+                };
+
+                for(var _peer_id in peer_mapper) {
+                     if(peer_mapper[peer_id].user_id !== peer_mapper[_peer_id].user_id) {
+                        if(peer_mapper[peer_id].origin == peer_mapper[_peer_id].origin) {
+                            // console.log("*** get same origin***");
+                            var longitude = peer_mapper[peer_id].longitude - peer_mapper[_peer_id].longitude;
+                            var latitude = peer_mapper[peer_id].latitude - peer_mapper[_peer_id].latitude;
+                            peer_mapper[_peer_id].distance = Math.sqrt(Math.pow(longitude, 2) + Math.pow(latitude, 2));
+                            same_origin.push(peer_mapper[_peer_id]);
+                        }
+                        else {
+                            // console.log("*** get small distance***")
+                            var longitude = peer_mapper[peer_id].longitude - peer_mapper[_peer_id].longitude;
+                            var latitude = peer_mapper[peer_id].latitude - peer_mapper[_peer_id].latitude;
+                            peer_mapper[_peer_id].distance = Math.sqrt(Math.pow(longitude, 2) + Math.pow(latitude, 2));
+                            small_distance.push(peer_mapper[_peer_id]);
+                        }
+                    }
+                };                   
+                same_origin.sort(function(peer_1, peer_2 ) {
+                    if (peer_1.location < peer_2.location)
+                        return -1;
+                    if (peer_1.location > peer_2.location)
+                        return 1;
+                    return 0;
+                });
+                small_distance.sort(function(peer_1, peer_2 ) {
+                    if (peer_1.location < peer_2.location)
+                        return -1;
+                    if (peer_1.location > peer_2.location)
+                        return 1;
+                    return 0;
+                });
+                length_of_peers = number_friend-peer_id_return.length;
+                for(var i = 0; i < length_of_peers; i++) {
+                    if(same_origin[i]) {
+                        peer_id_return.push(same_origin[i].peer_id);
+                        console.log(peer_id_return);
+                    }
+                }
+                length_of_peers = number_friend-peer_id_return.length;
+                if(peer_id_return.length < number_friend) {
+                    for(var i = 0; i < length_of_peers; i++) {
+                        if(small_distance[i]) {
+                            peer_id_return.push(small_distance[i].peer_id);
+                        }
+                    } 
+                }
+                console.log("******//////for "+user_id +"////*************");
+                for(var i = 0; i < same_origin.length; i++) {
+                    console.log(same_origin[i].peer_id);
+                }
+                console.log(peer_id_return);
+                return callback(peer_id_return);
+            }
+            else {
+
+            }        
+        }
+
+        // var all = Object.keys(self.peer_mapper);
         // var index = all.indexOf(peer_id);
         // if (index > -1) {
         //     all.splice(index, 1);
         // }
-        // console.log("****************all**********************");
-        // console.log(all);
-        // console.log(typeof all);
-       
-        for(var id_peer_mapper in peer_mapper) {
-            for(var i = 0; i < usernames.length; i++) {
-                if(peer_mapper[id_peer_mapper].username === usernames[i]) {
-                    if(peer_mapper[id_peer_mapper].peer_id !== peer_id) {
-                        list_peer_id_return.push(peer_mapper[id_peer_mapper].peer_id);
-                    }                   
-                }
-            }
-        }
-        // console.log("***************list peer id return****************");
-        // console.log(list_peer_id_return);
-        // console.log(typeof list_peer_id_return);
-         // return callback(all);
-        return callback(list_peer_id_return);
+        // return callback(all);
     });
 };
 
-RoomManager.prototype.addPeer = function(peer_id, username, origin, socket){
+RoomManager.prototype.addPeer = function(peer_id, user_id, origin, longitude, latitude, socket){
     console.log("Adding peer:", peer_id);
     var self = this; 
-    var peer = PeerContainer.create(peer_id, username, origin, socket);
+    var peer = PeerContainer.create(peer_id, user_id, origin,  longitude, latitude, socket);
     this.peer_mapper[peer_id] = peer;
 
     //reg event listener
@@ -62,8 +131,6 @@ RoomManager.prototype.addPeer = function(peer_id, username, origin, socket){
 
     //init data to sending to peer
     this.bestPeersForPeer(peer_id, function(list_peer_id_return) {
-        // console.log("************peer prepare********************");
-        // console.log(list_peer_id_return);
         peer.emit('prepare-peer', {
             peer_host : self.config.peer_host,
             peer_port : self.config.peer_port,
