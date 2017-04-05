@@ -18,19 +18,26 @@ function RoomManager(room_id, _config){
 RoomManager.prototype.bestPeersForPeer = function(peer_id, callback){
     var self = this;
     var peer_mapper = self.peer_mapper;
-    var user_id = self.peer_mapper[peer_id].user_id;
+    console.log("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
+    console.log(peer_mapper[peer_id].user_id);
+    console.log(peer_mapper[peer_id].peer_id);
+    var user_id = peer_mapper[peer_id].user_id;
+    console.log("user id: "+user_id);
     var number_friend = 5;
     var length_of_peers = 0;
+    var same_origin = [];
+    var small_distance = [];
+
     friend_service.get_friend(user_id, number_friend, function(err, friends_id) {
         if(!err) {
             var peer_id_return = [];
             if(friends_id.length == number_friend) {
                 console.log("*** friend = "+number_friend+" ***");
                 for(var _peer_id in peer_mapper) {
-                    for(var i = 0; i < friends_id.length; i++) {
-                        if(peer_mapper[peer_id].user_id == friends_id[i]) {
+                    for(var i = 0; i < number_friend; i++) {
+                        if(peer_mapper[_peer_id].user_id == friends_id[i]) {
                             peer_id_return.push(peer_mapper[_peer_id].peer_id);
-                            return;
+                            // return;
                         }
                     }
                 }
@@ -39,13 +46,11 @@ RoomManager.prototype.bestPeersForPeer = function(peer_id, callback){
             }
             else if(friends_id.length < number_friend) {
                 console.log("*** friend = "+ friends_id.length +" < "+number_friend+" ***");
-                var same_origin = [];
-                var small_distance = [];
                 for(var _peer_id in peer_mapper) {
                     for(var i = 0; i < friends_id.length; i++) {
                         if(peer_mapper[_peer_id].user_id == friends_id[i]) {
                             peer_id_return.push(peer_mapper[_peer_id].peer_id);
-                            delete peer_mapper[_peer_id];
+                            // delete peer_mapper[_peer_id];
                         }
                     }
                 };
@@ -86,7 +91,6 @@ RoomManager.prototype.bestPeersForPeer = function(peer_id, callback){
                 for(var i = 0; i < length_of_peers; i++) {
                     if(same_origin[i]) {
                         peer_id_return.push(same_origin[i].peer_id);
-                        console.log(peer_id_return);
                     }
                 }
                 length_of_peers = number_friend-peer_id_return.length;
@@ -97,7 +101,7 @@ RoomManager.prototype.bestPeersForPeer = function(peer_id, callback){
                         }
                     } 
                 }
-                console.log("******//////for "+user_id +"////*************");
+                console.log("******////// for "+user_id +"////*************");
                 for(var i = 0; i < same_origin.length; i++) {
                     console.log(same_origin[i].peer_id);
                 }
@@ -105,7 +109,65 @@ RoomManager.prototype.bestPeersForPeer = function(peer_id, callback){
                 return callback(peer_id_return);
             }
             else {
+                console.log("*** friend = "+ friends_id.length +" > "+number_friend+" ***");
+                // for(var _peer_id in peer_mapper) {
+                //     for(var i = 0; i < friends_id.length; i++) {
+                //         if(peer_mapper[_peer_id].user_id !== friends_id[i]) {
+                //             delete peer_mapper[_peer_id];
+                //         }
+                //     }
+                // };
+                // for(var _peer_id in peer_mapper) {
+                //     if(peer_mapper[peer_id].user_id !== peer_mapper[_peer_id].user_id) {
+                //         if(peer_mapper[peer_id].origin == peer_mapper[_peer_id].origin) {
+                //             // console.log("*** get same origin***");
+                //             var longitude = peer_mapper[peer_id].longitude - peer_mapper[_peer_id].longitude;
+                //             var latitude = peer_mapper[peer_id].latitude - peer_mapper[_peer_id].latitude;
+                //             peer_mapper[_peer_id].distance = Math.sqrt(Math.pow(longitude, 2) + Math.pow(latitude, 2));
+                //             same_origin.push(peer_mapper[_peer_id]);
+                //         }
+                //         else {
+                //             // console.log("*** get small distance***")
+                //             var longitude = peer_mapper[peer_id].longitude - peer_mapper[_peer_id].longitude;
+                //             var latitude = peer_mapper[peer_id].latitude - peer_mapper[_peer_id].latitude;
+                //             peer_mapper[_peer_id].distance = Math.sqrt(Math.pow(longitude, 2) + Math.pow(latitude, 2));
+                //             small_distance.push(peer_mapper[_peer_id]);
+                //         }
+                //     }
+                // };                   
+                // same_origin.sort(function(peer_1, peer_2 ) {
+                //     if (peer_1.location < peer_2.location)
+                //         return -1;
+                //     if (peer_1.location > peer_2.location)
+                //         return 1;
+                //     return 0;
+                // });
+                // small_distance.sort(function(peer_1, peer_2 ) {
+                //     if (peer_1.location < peer_2.location)
+                //         return -1;
+                //     if (peer_1.location > peer_2.location)
+                //         return 1;
+                //     return 0;
+                // });
 
+                // var length_of_origin =  same_origin.length;
+                // if(length_of_origin <= number_friend) {
+                //     for(var i = 0; i < length_of_origin; i++) {
+                //         peer_id_return.push(same_origin[i].peer_id);
+                //         console.log(peer_id_return);
+                //     }
+                // }
+                // else {
+                //     for(var i = 0; i < (number_friend-length_of_origin); i++) {
+                //         if(small_distance[i]) {
+                //             peer_id_return.push(small_distance[i].peer_id);
+                //         }
+                //     }                   
+                // }
+                
+                // console.log("******////// for "+user_id +"////*************");
+                // console.log(peer_id_return);
+                // return callback(peer_id_return);     
             }        
         }
 
