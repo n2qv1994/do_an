@@ -40,7 +40,7 @@ PeerManager.prototype.onPrepare = function(data){
 
     //connect to peer
     var self = this;
-    this.peer = new Peer(peer_id, {//????????????????????????? where is Peer
+    this.peer = new Peer(peer_id, {
         host: peer_host,
         port: peer_port,
         path: peer_path
@@ -52,10 +52,17 @@ PeerManager.prototype.onPrepare = function(data){
         if(this.listener) this.listener('started', {});
     });
 
-    this.peer.on('connection', function(conn){
-        console.log("Opened new subscriber peer connection:", conn);
-        self.addSubscriber(conn);
-        self.peer_history.add(conn); //???????? change this become seft
+    this.peer.on('connection', function(conn){ // n2qv
+        if(conn !== null) {
+            console.log("Opened new subscriber peer connection:" + conn);
+            self.addSubscriber(conn);
+            self.peer_history.add(conn);
+            console.log(self.peer_history);
+        }
+        // console.log("Opened new subscriber peer connection:" + conn);
+        // self.addSubscriber(conn);
+        // this.peer_history.add(conn);
+        // console.log(this.peer_history);
     })
 };
 
@@ -122,5 +129,3 @@ PeerManager.prototype.addOne = function(peer_id){
 PeerManager.prototype.setListener = function (listener) {
     this.listener = listener;
 };
-
-

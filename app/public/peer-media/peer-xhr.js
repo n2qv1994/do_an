@@ -79,6 +79,7 @@ document.PeerXHRRequest =  function(RequestOptions){
             window.peercdn.request(this.peer_url,
                 function(response){
                     console.log("Downloaded data:", response);
+                    console.log(self);
                     self.readyState = 4;//done flag
                     self.status = 200;//fake ok
                     if(self.responseType == 'arraybuffer'){
@@ -163,7 +164,7 @@ document.PeerXHRRequest =  function(RequestOptions){
          input: event
          */
         onreadystatechange: function(e) {
-            console.log("onreadystatechange");
+
         },
 
         /*

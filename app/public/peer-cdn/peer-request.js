@@ -12,7 +12,7 @@ function PeerRequest(peer) {
         console.log("PeerMSG:", data);
         if(data.type == 'request'){
             self.request_mapper[data.data.type](data.data.type, data.data.params, function(response){
-                self.answer(data.uuid, response)
+                self.answer(data.uuid, response);
             });
         }else if(data.type == 'response'){
             self.callback_mapper[data.uuid](data.response);
@@ -44,7 +44,7 @@ PeerRequest.prototype.request = function(type, params, callback){
 
     this.callback_mapper[uuid] = callback;
 
-    this.peer.send(msg);
+    this.peer.send(msg); //???
 };
 
 
@@ -54,7 +54,6 @@ PeerRequest.prototype.answer = function(uuid, response){
         uuid: uuid,
         response: response
     };
-
     this.peer.send(msg);
 };
 

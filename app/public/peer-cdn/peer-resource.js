@@ -10,9 +10,9 @@ function PeerResource(peer_manager, peer_cache, options) {
 }
 
 PeerResource.prototype.request = function(resource_id, callback){
-    // ???????????????
     if(this.peer_cache.check(resource_id)){
-        callback(this.peer_cache.get(resource_id));
+        // callback(this.peer_cache.get(resource_id));
+        callback(this.peer_cache.get(resource_id),'my_data',"my_id");
         return;
     }
 
@@ -33,9 +33,9 @@ PeerResource.prototype.request = function(resource_id, callback){
 
     var number_request = Object.keys(peers).length;
     for (var peer_id in peers) {
-        if (peers.hasOwnProperty(peer_id)){
+        if (peers.hasOwnProperty(peer_id)){ //???
             var peer = peers[peer_id];
-            console.log("Requesting peer data-------: ", peer_id);
+            console.log("Requesting peer data:", peer_id);
             peer.request(
                 'check-request',
                 {
@@ -45,12 +45,12 @@ PeerResource.prototype.request = function(resource_id, callback){
                     number_request--;
                     console.log("Requesting peer data response", response);
                     if(has_data == false && response.status == true){
-                        console.log("   ------------>accept");
+                        console.log("   ->accept");
                         clearTimeout(peer_timeout);
                         has_data = true;
                         self.downloadPeer(peer, resource_id, callback);
                     }else{
-                        console.log("   ---------------->reject");
+                        console.log("   ->reject");
                         if(number_request == 0){
                             console.log("All peer no data -> using http" );
                             clearTimeout(peer_timeout);
@@ -103,7 +103,6 @@ PeerResource.prototype.addDownloading = function(resource_id, type){
             type: type,
             callbacks: []
         };
-        console.log(this.downloading_mapper[resource_id]);
     }
     console.log("Downloading: added" + resource_id, this.downloading_mapper);
 };
@@ -122,27 +121,19 @@ PeerResource.prototype.isDownloading = function(resource_id, type){
 };
 
 PeerResource.prototype.setDownloaded = function(resource_id, arrayBuffer){
-    console.log("Downloading: removed " + resource_id);
-
-    if( this.downloading_mapper[resource_id] !== undefined) {
+    // console.log("Downloading: removed " + resource_id);
+    // var callbacks = this.downloading_mapper[resource_id].callbacks;
+    // for(var i = 0; i < callbacks.length; i++){
+    //     callbacks[i](arrayBuffer);
+    // }
+    // delete this.downloading_mapper[resource_id];
+    if( this.downloading_mapper[resource_id] !== undefined) { //n2qv
         var callbacks = this.downloading_mapper[resource_id].callbacks;
         for(var i = 0; i < callbacks.length; i++){
             callbacks[i](arrayBuffer);
         }
         delete this.downloading_mapper[resource_id];     
     }
-    else {
-        console.log("****************callbacks err**************************");
-        console.log(resource_id);
-        console.log(this.downloading_mapper);
-        console.log(this.downloading_mapper[resource_id]);        
-    }
-    // var callbacks = this.downloading_mapper[resource_id].callbacks;//???????????
-
-    // for(var i = 0; i < callbacks.length; i++){
-    //     callbacks[i](arrayBuffer);
-    // }
-    // delete this.downloading_mapper[resource_id];
 };
 //end of downloading resource utils
 
@@ -158,8 +149,9 @@ PeerResource.prototype.downloadHttp = function(resource_id, callback){
     oReq.onload = function (oEvent) {
         var arrayBuffer = oReq.response; // Note: not oReq.responseText
         if (arrayBuffer) {
-            callback(arrayBuffer, 'http', null);
+            callback(arrayBuffer, 'http', 'http');
             self.peer_cache.cache(resource_id, arrayBuffer);
+
             self.setDownloaded(resource_id, arrayBuffer);
         }
     };
@@ -169,6 +161,7 @@ PeerResource.prototype.downloadHttp = function(resource_id, callback){
 
 PeerResource.prototype.downloadPeer = function(peer, resource_id, callback){
     this.addDownloading(resource_id, 'peer');
+
     var self = this;
     console.log("Download " + resource_id + " by peer");
     peer.request(
@@ -179,6 +172,7 @@ PeerResource.prototype.downloadPeer = function(peer, resource_id, callback){
             if(data != null && data.status == true){
                 callback(data.data, 'peer', peer.peer_id);
                 self.peer_cache.cache(resource_id, data.data);
+
                 self.setDownloaded(resource_id);
             }else{
                 self.downloadHttp(resource_id, callback);

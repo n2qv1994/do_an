@@ -12,14 +12,15 @@ PeerCacheSizeLimit.prototype.cache = function(resource_id, resource) {
     var current_size = resource.byteLength ;
     var self = this;
     console.log("Adding cache " + resource_id + " size: " + current_size + " now_cache_size:" + this.size + " size_limit:" + this.size_limit);
-
+    //n2qv
     if(this.size + current_size > this.size_limit){//need remove some data
-        while(this.size + current_size > this.size_limit && this.list.length > 0){
-            console.log("Free cache for release memory:" + this.list[0]);
-            this.size -= this.data[this.list[0]].byteLength ;
-            delete this.data[this.list[0]];
-            this.list.slice(0, 1);
+        while(self.size + current_size > self.size_limit && self.list.length > 0){
+            console.log("Free cache for release memory:" + self.list[0]);
+            self.size -= self.data[self.list[0]].byteLength;
+            delete self.data[self.list[0]];
+            self.list.slice(0, 1);
         }
+        // self.size = 0;
     }
 
     if(this.size + current_size <= this.size_limit){

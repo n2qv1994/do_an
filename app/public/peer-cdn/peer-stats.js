@@ -70,6 +70,7 @@ PeerStats.prototype.add = function(type, size, download_time, prepare_time){
         this.http_stats.size += size;
         this.http_stats.download_time += download_time;
         this.http_stats.prepare_time += prepare_time;
+
         var serverBar = document.getElementById("serverBar");  
         serverBar.style.width = this.total_http_stats.download_count + '%'; 
         serverBar.innerHTML = this.total_http_stats.download_count * 1  + ' package';

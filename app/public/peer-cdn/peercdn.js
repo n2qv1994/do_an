@@ -4,7 +4,6 @@
 
 function PeerCDN(options) {
     this.options = options;
-    this.socket  = null;
 }
 
 PeerCDN.prototype.connect = function(server_url){
@@ -13,7 +12,7 @@ PeerCDN.prototype.connect = function(server_url){
         server_url,
         {
             query:{
-                room_id:'room_1',
+                room_id: window.room_id,
                 key:'aaaaaa'
             },
             forceNew:true,
@@ -50,18 +49,20 @@ PeerCDN.prototype.request = function(resource_id, callback){
     this.peer_resource.request(resource_id, function(data, type, peer_id){
         var end_time = Date.now();
         var speed = data.byteLength / (end_time - start_time);
-        console.log("Download------ " + resource_id + " ---size:" + (data.byteLength / 1024) + "---kB speed:" + speed + "---kB/s by " + type);
-        self.peer_stats.add(type, data.byteLength,end_time - start_time, 10, peer_id, self.socket);
+        console.log("Download " + resource_id + " size:" + (data.byteLength / 1024) + "kB speed:" + speed + "kB/s by " + type);
+        self.peer_stats.add(type, data.byteLength,end_time - start_time, 10);
         window.data.speed = speed;
         window.data.type = type;
         if(type == "peer") {
             $("#list_peer_id").append('<li>'+peer_id+'</li>');
-            var data = {
-                receiver: window.username,
-                sender_id: peer_id
-            };
-            self.emit("increase_score", data);
         }
+        var _data = {
+                receiver: window.username,
+                sender_id: peer_id,
+                type: type,
+                room_name: window.room_id
+            };
+            self.emit("increase_score", _data);
         if(callback) callback(data);
     });
 };

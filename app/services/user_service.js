@@ -46,21 +46,21 @@ User_Services.update_score = function(username) {
   });
 };
 
-// User_Services.update_status = function(username, status) {
-//   user_helper.find_by_username(username)
-//   .then(function(message) {
-//     var user = message.data;
-//     if(user) {
-//       user_helper.update_status(user,status);
-//     }
-//     else {
-//       console.log("*** Not found user for update status ***");
-//     }
-//   })
-//   .catch(function(message_error) {
-//     Utils.log(message_error.error);
-//   });
-// };
+User_Services.update_status = function(user, status) {
+  user_helper.find_by_username(user.username)
+  .then(function(message) {
+    var _user = message.data;
+    if(_user) {
+      user_helper.update_status(_user,status);
+    }
+    else {
+      console.log("*** Not found user for update status ***");
+    }
+  })
+  .catch(function(message_error) {
+    Utils.log(message_error.error);
+  });
+};
 
 User_Services.get_best_peers = function(callback) {
   user_helper.get_best_peers()

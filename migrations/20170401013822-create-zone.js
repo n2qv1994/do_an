@@ -11,6 +11,12 @@ module.exports = {
       room_name: {
         type: Sequelize.STRING
       },
+      http: {
+        type: Sequelize.INTEGER
+      },
+      peer: {
+        type: Sequelize.INTEGER
+      },  
       createdAt: {
         allowNull: false,
         type: Sequelize.DATE

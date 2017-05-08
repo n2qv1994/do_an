@@ -1,4 +1,3 @@
-window.url_cache = [];
 (function(videojs){
     /**
      * Creates and sends an XMLHttpRequest.
@@ -82,22 +81,17 @@ window.url_cache = [];
                 this.bytesReceived = this.response.byteLength || this.response.length;
                 this.bandwidth = Math.floor((this.bytesReceived / this.roundTripTime) * 8 * 1000);
             }
-            
-            // if(window.url_cache.length === 10) {
-            //     for(var i = 0; i < 10; i++) {
-            //         callback.call(this, false, url_cache[i]);
-            //     }
-            //     return window.url_cache = [];
-            // }   
-            // window.url_cache.push(url);
-            // console.log("n2qv");
-            // return callback.call(this, true, null);
 
             console.log("[PeerRequest]　onreadystatechange ok:" + this.bytesReceived);
+
             return callback.call(this, false, url);
         };
-        request.send(null);
-        return request;
+        //n2qv
+        setTimeout(function() {
+            request.send(null);
+            return request;
+        }, 300);    
+        
     };
 
     videojs.Hls.GOAL_BUFFER_LENGTH = 120;

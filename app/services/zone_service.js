@@ -21,4 +21,36 @@ Zone_Services.add_zone = function(room_name) {
 	 });
 };
 
+Zone_Services.update_http_zone = function(room_name) {
+	zone_helper.find_zone(room_name)
+	.then(function(message) {
+	    var zone = message.data;
+	    if(zone) {    
+	     	zone_helper.update_http_zone(zone);
+	    }
+	    else {
+	      console.log("*** not found zone  ***");
+	    }
+	 })
+	 .catch(function(message_error) {
+	    Utils.log(message_error.error);
+	 });
+};
+
+Zone_Services.update_peer_zone = function(room_name) {
+	zone_helper.find_zone(room_name)
+	.then(function(message) {
+	    var zone = message.data;
+	    if(zone) {    
+	     	zone_helper.update_peer_zone(zone);
+	    }
+	    else {
+	      console.log("*** not found zone  ***");
+	    }
+	 })
+	 .catch(function(message_error) {
+	    Utils.log(message_error.error);
+	 });
+};
+
 module.exports = Zone_Services;

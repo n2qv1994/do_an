@@ -26,6 +26,8 @@ Zone_Helper.find_zone = function(room_name) {
 Zone_Helper.add_zone = function(room_name) {
 	models.Zone.build({
 	    room_name: room_name,
+	    http: 0,
+	    peer: 0
  	})
 	.save()
 	.then(function(result) {
@@ -34,6 +36,35 @@ Zone_Helper.add_zone = function(room_name) {
 	.catch(function(error) {		
 		console.log("*** save zone false ***");
 		console.log(error);
+	});
+};
+
+Zone_Helper.update_http_zone = function(zone) {
+	zone.http++;
+	zone.update({
+	   http: zone.http
+	})
+	.then(function(friend_update) {
+	   console.log("**** update zone'http success ****");
+	})
+	.catch(function(error) {
+	   console.log("**** update zone'http false ****");
+	   console.log(error);
+	});
+	
+};
+
+Zone_Helper.update_peer_zone = function(zone) {
+	zone.peer++;
+	zone.update({
+	   peer: zone.peer
+	})
+	.then(function(friend_update) {
+	   console.log("**** update zone'peer success ****");
+	})
+	.catch(function(error) {
+	   console.log("**** update zone'peer false ****");
+	   console.log(error);
 	});
 };
 

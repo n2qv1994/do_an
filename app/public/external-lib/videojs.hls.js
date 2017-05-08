@@ -623,9 +623,9 @@ videojs.Hls.prototype.fillBuffer = function(offset) {
   }
 
   // if there is a request already in flight, do nothing
-  if (this.segmentXhr_) {
-    return;
-  }
+  // if (this.segmentXhr_) {
+  //   return;
+  // }
 
   // if no segments are available, do nothing
   if (this.playlists.state === "HAVE_NOTHING" ||
